@@ -8,36 +8,24 @@ Los estudiantes pueden usarlo como base para crear sus propias pruebas.
 import pandas as pd
 import pytest
 
-from src.preprocessing.cleaner import (
-    detect_outliers,
-    fill_missing_values,
-    get_sample_data,
-    handle_outliers,
-    remove_duplicates,
-    standardize_column_values,
-)
+from src.preprocessing.cleaner import get_sample_data, standardize_column_values
 
 
 @pytest.fixture
 def sample_df():
-    """Crear un DataFrame de muestra con datos faltantes."""
+    """Crear un DataFrame de muestra para estandarización."""
     return pd.DataFrame(
         {
-            "edad": [30, 40, None, 25, 50],
-            "salario": [5000, None, 4500, 5500, 6000],
-            "departamento": ["Ventas", "IT", "IT", "Ventas", None],
-            "genero": ["M", "F", "M", "F", "M"],
-        }
-    )
-
-
-@pytest.fixture
-def outlier_df():
-    """Crear un DataFrame de muestra con outliers."""
-    return pd.DataFrame(
-        {
-            "edad": [30, 40, 35, 25, 80],
-            "salario": [5000, 5200, 4500, 5500, 20000],
+            "genero": ["M", "F", "m", "F", "m"],
+            "estado_civil": ["Soltero", "soltero", "CASADO", "Casado", "viudo"],
+            "nivel_educativo": [
+                "universitario",
+                "UNIVERSITARIO",
+                "Técnico",
+                "Secundaria",
+                "técnico",
+            ],
+            "departamento": ["Ventas", "Marketing", "ventas", "MARKETING", "IT"],
         }
     )
 
@@ -50,192 +38,157 @@ def test_get_sample_data():
     assert not df.empty
 
     # Verificar que tiene las columnas esperadas
-    expected_columns = ["id", "edad", "salario", "departamento", "genero"]
+    expected_columns = [
+        "id",
+        "genero",
+        "estado_civil",
+        "nivel_educativo",
+        "departamento",
+    ]
     assert all(col in df.columns for col in expected_columns)
 
-    # Verificar que hay valores nulos
-    assert df.isna().any().any()
+    # Verificar que hay registros suficientes
+    assert len(df) == 5
 
-    # Verificar que hay duplicados en 'id'
-    assert df["id"].duplicated().any()
-
-
-def test_fill_missing_values_with_mean(sample_df):
-    """Probar la función fill_missing_values con estrategia 'mean'."""
-    # También proporcionar un valor de llenado para la columna departamento
-    fill_values = {"departamento": "Desconocido"}
-    result = fill_missing_values(sample_df, strategy="mean", fill_values=fill_values)
-
-    # Verificar que no hay valores faltantes
-    assert result.isna().sum().sum() == 0
-
-    # Verificar que el valor faltante en 'edad' se rellenó con la media
-    expected_age_mean = sample_df["edad"].mean()
-    assert result["edad"].iloc[2] == pytest.approx(expected_age_mean)
-
-    # Verificar valor faltante en 'salario' rellenado con la media
-    expected_salary_mean = sample_df["salario"].mean()
-    assert result["salario"].iloc[1] == pytest.approx(expected_salary_mean)
-
-    # Verificar valor faltante en 'departamento' rellenado con valor específico
-    assert result["departamento"].iloc[4] == "Desconocido"
+    # Verificar que contiene valores en mayúsculas, minúsculas y mezclados
+    assert any(df["genero"].str.islower())
+    assert any(df["genero"].str.isupper())
 
 
-def test_fill_missing_values_with_custom_values(sample_df):
-    """Probar la función fill_missing_values con valores personalizados."""
-    fill_values = {"edad": 99, "departamento": "Desconocido"}
-    result = fill_missing_values(sample_df, fill_values=fill_values)
-
-    # Verificar que los valores se rellenaron según lo esperado
-    assert result["edad"].iloc[2] == 99
-    assert result["departamento"].iloc[4] == "Desconocido"
-
-    # El valor de 'salario' debería rellenarse con la media
-    expected_salary_mean = sample_df["salario"].mean()
-    assert result["salario"].iloc[1] == pytest.approx(expected_salary_mean)
-
-
-def test_remove_duplicates():
-    """Probar la función remove_duplicates."""
-    # Crear DataFrame con duplicados
-    df = pd.DataFrame(
-        {
-            "id": [1, 2, 2, 3, 4],
-            "nombre": ["Juan", "María", "María", "Pedro", "Ana"],
-            "departamento": ["Ventas", "Marketing", "Marketing", "IT", "Ventas"],
-        }
-    )
-
-    # Eliminar duplicados completos
-    result = remove_duplicates(df)
-    assert len(result) == 4  # Debería eliminar una fila
-
-    # Eliminar duplicados basados en las columnas 'nombre' y 'departamento'
-    result = remove_duplicates(df, subset=["nombre", "departamento"])
-    assert len(result) == 4  # Debería eliminar una fila
-
-
-def test_standardize_column_values(sample_df):
-    """Probar la función standardize_column_values."""
-    mapping = {"M": "Masculino", "F": "Femenino"}
+def test_standardize_column_values_genero(sample_df):
+    """Probar la función standardize_column_values con la columna genero."""
+    mapping = {"M": "Masculino", "m": "Masculino", "F": "Femenino", "f": "Femenino"}
     result = standardize_column_values(sample_df, "genero", mapping)
 
-    # Verificar que los valores se estandarizaron
+    # Verificar que los valores se estandarizaron correctamente
     assert result["genero"].iloc[0] == "Masculino"
     assert result["genero"].iloc[1] == "Femenino"
+    assert result["genero"].iloc[2] == "Masculino"
 
     # El DataFrame original no debe modificarse
     assert sample_df["genero"].iloc[0] == "M"
 
-
-def test_detect_outliers_iqr(outlier_df):
-    """Probar la función detect_outliers con método IQR."""
-    outliers = detect_outliers(outlier_df, "salario", method="iqr", threshold=1.5)
-
-    # Verificar que detecta el outlier en la última fila
-    assert outliers.iloc[4]
-
-    # Verificar que las demás filas no son outliers
-    assert not any(outliers.iloc[:4])
+    # Verificar valores únicos después de la estandarización
+    assert set(result["genero"].unique()) == {"Masculino", "Femenino"}
 
 
-def test_detect_outliers_zscore(outlier_df):
-    """Probar la función detect_outliers con método Z-Score."""
-    # Usar un umbral más bajo para detectar el outlier con Z-score
-    outliers = detect_outliers(outlier_df, "salario", method="zscore", threshold=1.2)
+def test_standardize_column_values_estado_civil(sample_df):
+    """Probar la función standardize_column_values con la columna estado_civil."""
+    mapping = {
+        "Soltero": "Soltero/a",
+        "soltero": "Soltero/a",
+        "CASADO": "Casado/a",
+        "Casado": "Casado/a",
+        "viudo": "Viudo/a",
+    }
+    result = standardize_column_values(sample_df, "estado_civil", mapping)
 
-    # Verificar que detecta el outlier en la última fila
-    assert outliers.iloc[4]
+    # Verificar que los valores se estandarizaron correctamente
+    assert result["estado_civil"].iloc[0] == "Soltero/a"
+    assert result["estado_civil"].iloc[1] == "Soltero/a"
+    assert result["estado_civil"].iloc[2] == "Casado/a"
+    assert result["estado_civil"].iloc[3] == "Casado/a"
+    assert result["estado_civil"].iloc[4] == "Viudo/a"
 
-    # Verificar que las demás filas no son outliers
-    assert sum(outliers.iloc[:4]) == 0
-
-
-def test_detect_outliers_invalid_column(outlier_df):
-    """Probar que detect_outliers lanza error con columna inválida."""
-    with pytest.raises(ValueError):
-        detect_outliers(outlier_df, "columna_inexistente")
-
-
-def test_detect_outliers_invalid_method(outlier_df):
-    """Probar que detect_outliers lanza error con método inválido."""
-    with pytest.raises(ValueError):
-        detect_outliers(outlier_df, "salario", method="metodo_inexistente")
+    # Verificar valores únicos después de la estandarización
+    assert set(result["estado_civil"].unique()) == {"Soltero/a", "Casado/a", "Viudo/a"}
 
 
-def test_handle_outliers_clip(outlier_df):
-    """Probar la función handle_outliers con método 'clip'."""
-    result = handle_outliers(outlier_df, "salario", method="clip")
+def test_standardize_column_values_nivel_educativo(sample_df):
+    """Probar la función standardize_column_values con la columna nivel_educativo."""
+    mapping = {
+        "universitario": "Universitario",
+        "UNIVERSITARIO": "Universitario",
+        "Técnico": "Técnico",
+        "técnico": "Técnico",
+        "Secundaria": "Secundaria",
+    }
+    result = standardize_column_values(sample_df, "nivel_educativo", mapping)
 
-    # El valor original era 20000, debería estar recortado
-    original_value = outlier_df["salario"].iloc[4]
-    clipped_value = result["salario"].iloc[4]
+    # Verificar que los valores se estandarizaron correctamente
+    assert result["nivel_educativo"].iloc[0] == "Universitario"
+    assert result["nivel_educativo"].iloc[1] == "Universitario"
+    assert result["nivel_educativo"].iloc[2] == "Técnico"
+    assert result["nivel_educativo"].iloc[3] == "Secundaria"
+    assert result["nivel_educativo"].iloc[4] == "Técnico"
 
-    assert clipped_value < original_value
-
-    # Verificar que todos los demás valores se mantienen igual
-    for i in range(4):
-        assert result["salario"].iloc[i] == outlier_df["salario"].iloc[i]
-
-
-def test_handle_outliers_remove(outlier_df):
-    """Probar la función handle_outliers con método 'remove'."""
-    result = handle_outliers(outlier_df, "salario", method="remove")
-
-    # Debería tener una fila menos
-    assert len(result) == len(outlier_df) - 1
-
-    # La fila con el outlier debería haberse eliminado
-    assert 20000 not in result["salario"].values
-
-
-def test_handle_outliers_replace(outlier_df):
-    """Probar la función handle_outliers con método 'replace'."""
-    # Usar la mediana como valor de reemplazo
-    result = handle_outliers(outlier_df, "salario", method="replace")
-
-    # El valor del outlier debería ser la mediana
-    median = outlier_df["salario"].median()
-    assert result["salario"].iloc[4] == median
-
-    # Probar con un valor personalizado
-    result = handle_outliers(
-        outlier_df, "salario", method="replace", replacement_value=9999
-    )
-    assert result["salario"].iloc[4] == 9999
+    # Verificar valores únicos después de la estandarización
+    assert set(result["nivel_educativo"].unique()) == {
+        "Universitario",
+        "Técnico",
+        "Secundaria",
+    }
 
 
-def test_handle_outliers_invalid_method(outlier_df):
-    """Probar que handle_outliers lanza error con método inválido."""
-    with pytest.raises(ValueError):
-        handle_outliers(outlier_df, "salario", method="metodo_inexistente")
+def test_standardize_column_values_departamento(sample_df):
+    """Probar la función standardize_column_values con la columna departamento."""
+    mapping = {
+        "Ventas": "VENTAS",
+        "ventas": "VENTAS",
+        "Marketing": "MARKETING",
+        "MARKETING": "MARKETING",
+        "IT": "IT",
+    }
+    result = standardize_column_values(sample_df, "departamento", mapping)
+
+    # Verificar que los valores se estandarizaron correctamente
+    assert result["departamento"].iloc[0] == "VENTAS"
+    assert result["departamento"].iloc[1] == "MARKETING"
+    assert result["departamento"].iloc[2] == "VENTAS"
+    assert result["departamento"].iloc[3] == "MARKETING"
+    assert result["departamento"].iloc[4] == "IT"
+
+    # Verificar valores únicos después de la estandarización
+    assert set(result["departamento"].unique()) == {"VENTAS", "MARKETING", "IT"}
 
 
-def test_complete_workflow():
-    """Probar un flujo de trabajo completo con todas las funciones."""
-    # Obtener datos de ejemplo
-    df = get_sample_data()
+def test_standardize_column_values_nonexistent_column(sample_df):
+    """Probar la función standardize_column_values con una columna que no existe."""
+    mapping = {"A": "Valor A", "B": "Valor B"}
+    result = standardize_column_values(sample_df, "columna_inexistente", mapping)
 
-    # 1. Eliminar duplicados
-    df_no_duplicates = remove_duplicates(df, subset=["id"])
-    assert len(df_no_duplicates) < len(df)
+    # Verificar que el DataFrame no se modificó
+    assert result.equals(sample_df)
 
-    # 2. Estandarizar valores de género
-    mapping = {"M": "Masculino", "m": "Masculino", "F": "Femenino", "f": "Femenino"}
-    df_std = standardize_column_values(df_no_duplicates, "genero", mapping)
-    assert set(df_std["genero"].unique()).issubset({"Masculino", "Femenino"})
 
-    # 3. Detectar y manejar outliers
-    df_no_outliers = handle_outliers(df_std, "salario", method="clip")
+def test_standardize_column_values_empty_mapping(sample_df):
+    """Probar la función standardize_column_values con un mapeo vacío."""
+    mapping = {}
+    result = standardize_column_values(sample_df, "genero", mapping)
 
-    # 4. Llenar valores faltantes
-    df_clean = fill_missing_values(
-        df_no_outliers, strategy="median", fill_values={"departamento": "Desconocido"}
-    )
+    # Verificar que el DataFrame no se modificó
+    assert result["genero"].equals(sample_df["genero"])
 
-    # Verificar que el resultado no tiene valores faltantes
-    assert not df_clean.isna().any().any()
 
-    # Verificar valores 'departamento' rellenados con 'Desconocido'
-    if df_no_outliers["departamento"].isna().any():
-        assert "Desconocido" in df_clean["departamento"].values
+def test_standardize_multiple_columns(sample_df):
+    """Probar la estandarización de múltiples columnas en secuencia."""
+    # Mapeo para género
+    genero_mapping = {
+        "M": "Masculino",
+        "m": "Masculino",
+        "F": "Femenino",
+        "f": "Femenino",
+    }
+
+    # Mapeo para departamento
+    departamento_mapping = {
+        "Ventas": "VENTAS",
+        "ventas": "VENTAS",
+        "Marketing": "MARKETING",
+        "MARKETING": "MARKETING",
+    }
+
+    # Aplicar estandarizaciones en secuencia
+    result = standardize_column_values(sample_df, "genero", genero_mapping)
+    result = standardize_column_values(result, "departamento", departamento_mapping)
+
+    # Verificar que ambas columnas se estandarizaron correctamente
+    assert result["genero"].iloc[0] == "Masculino"
+    assert result["genero"].iloc[1] == "Femenino"
+
+    assert result["departamento"].iloc[0] == "VENTAS"
+    assert result["departamento"].iloc[1] == "MARKETING"
+
+    # Verificar valores únicos después de la estandarización
+    assert set(result["genero"].unique()) == {"Masculino", "Femenino"}
+    assert set(result["departamento"].unique()) == {"VENTAS", "MARKETING", "IT"}
