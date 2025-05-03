@@ -41,6 +41,10 @@ jobs:
       run: |
         isort --check-only --profile black src tests
 
+    - name: Verify test coverage for all modules
+      run: |
+        python scripts/check_test_coverage.py
+
     - name: Test with pytest
       run: |
         pytest --cov=src tests/

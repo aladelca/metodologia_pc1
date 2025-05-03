@@ -29,13 +29,13 @@ El dataset utilizado es el [HR Analytics Case Study](https://www.kaggle.com/data
 ## Tareas a Realizar
 
 ### 1. Unir datasets con datos de encuesta de empleados
-- Hacer un cruce de los datasets `general_data.csv` y `employee_survey_data.csv`. Pueden utilizar los comandos `merge` de `pandas`. 
+- Hacer un cruce de los datasets `general_data.csv` y `employee_survey_data.csv`. Pueden utilizar los comandos `merge` de `pandas`.
 - Crear las variables `average_employee_satisfaction` que vendría a ser el promedio de las variables del dataset `employee_surve_data.csv`.
 - Crear una documentación en formato `.md` indicando los pasos tomados en el cruce
 
 
 ### 2. Unir datasets con datos de feedback de jefes
-- Unir el dataset del paso uno con `manager_survey_data.csv`. Pueden utilizar los comandos `merge` de `pandas`. 
+- Unir el dataset del paso uno con `manager_survey_data.csv`. Pueden utilizar los comandos `merge` de `pandas`.
 - Crear las variables `average_manager_feedback` que vendría a ser el promedio de las variables del dataset `manager_surve_data.csv`.
 - Actualizar la documentación del paso uno indicando lo adicional.
 
@@ -47,7 +47,7 @@ El dataset utilizado es el [HR Analytics Case Study](https://www.kaggle.com/data
 - Implementar tests para las funciones de limpieza en `tests/preprocessing/`
 
 ### 4. Detección y Manejo de Outliers
-- Identificación de outliers mediante técnicas estadísticas (pueden utilizar el método 
+- Identificación de outliers mediante técnicas estadísticas (pueden utilizar el método
 `IsolationForest` y/o un simple boxplot)
 - Desarrollar estrategias para manejar outliers
 - Implementar funciones en `src/preprocessing/outlier_detector.py`
@@ -60,7 +60,7 @@ El dataset utilizado es el [HR Analytics Case Study](https://www.kaggle.com/data
 - El dataset final, después de culminados todos los cambios hasta esta etapa, deberá guardarse en una carpeta llamada `clean`.
 
 
-### 6. Feature Engineering 
+### 6. Feature Engineering
 - Haciendo uso de los datasets `in_time.csv` y `out_time.csv`, que indica la fecha de entrada y salida de los trabajadores, genera variables asociadas al tiempo efectivo de trabajo (promedio mensual de horas trabajadas, desviación estándar de las horas trabajadas, etc.). Deberán generar al menos 6 nuevas variables.
 - Los archivos que sirvan para generar las variables deberán estar en `src/features`.
 - El dataset final, después de culminada esta etapa, deberá guardarse en una carpeta llamada `feature`.
@@ -118,6 +118,3 @@ Cada estudiante deberá:
 - [Pytest Documentation](https://docs.pytest.org/)
 - [Pre-commit Documentation](https://pre-commit.com/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
-
-
-
