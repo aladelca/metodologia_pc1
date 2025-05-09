@@ -275,3 +275,34 @@ def test_apply_one_hot_encoding():
 - El dataset final codificado se guardó en: data/clean/hr_data_encoded.csv
 - Todas las variables categóricas fueron transformadas con éxito
 - Las pruebas pasaron correctamente
+
+## Grupo 6 - Feature Engineering
+
+## Objetivo
+
+Haciendo uso de los datasets in_time.csv y out_time.csv, se genero variables asociadas a tiempo efectivo de trabajo
+
+
+## Variables
+
+A continuación, se presenta el análisis de las variables categóricas presentes en el dataset, así como la decisión sobre la técnica de codificación más adecuada para cada una.
+
+| Variable         | Tipo       | Justificación |
+|------------------|------------|---------------|
+| `promedio_mensual_horas`       | Float    | Promedio de horas trabajadas en cada mes, útil para evaluar tendencias laborales. |
+| `desviacion_estandar`  | Float    |  Variabilidad de las horas trabajadas respecto al promedio mensual, indicando fluctuaciones en las jornadas. |
+| `categoria_horas_extra`      | Texto    |  Clasificación de las horas extra en leves, moderadas o altas, según el tiempo excedido. |
+| `categoria_tolerancia`  | Texto    |  Clasificación de la puntualidad en llegada al trabajo, como "Retraso leve", "Retraso grave" o "Llegó antes del horario". |
+| `horas_trabajadas`          | Float    |  Total de horas trabajadas por día, calculado a partir del registro de ingreso y salida. |
+| `tipo_jornada`         | Texto    |  Categoriza la jornada laboral como "Corta", "Normal" o "Larga" según la cantidad de horas trabajadas.  |
+
+### Script
+
+El script se encuentra en el archivo `../tiempo_efectivo.ipynb`
+
+### Set de datos final 
+
+El dataset final, se encuentra en la carpeta llamada feature. `src/features/control_jornada_laboral_diario.csv`
+
+Onedrive
+https://upcedupe-my.sharepoint.com/:f:/g/personal/u201500621_upc_edu_pe/Ep8LshkCO2pAsqrHHrrhAfwBnixWLh6f_NW-Mapbg_n5Ag?e=7z9uT5
