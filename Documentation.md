@@ -139,3 +139,139 @@ EmployeeID  ... JobSatisfaction WorkLifeBalance average_manager_feedback
 ## Grupo 3 - Limpieza de Datos y Manejo de Valores Faltantes
 
 #### CONTINUARA!!!
+
+## Grupo 5 - Transformación de variables categóricas con encoding
+
+## Objetivo
+
+Transformar las variables categóricas del dataset para que sean interpretables por algoritmos de Machine Learning, mediante las técnicas de codificación OneHotEncoder y LabelEncoder. Esto permite que el modelo entienda correctamente la información representada por texto.
+
+---
+
+## Identificación de Variables Categóricas
+
+Se utilizó el siguiente comando para identificar las columnas categóricas en el DataFrame:
+
+```python
+df.select_dtypes(include=["object"]).columns.tolist()
+```
+
+---
+
+Las variables categóricas detectadas en el dataset fueron:
+- Attrition
+- BusinessTravel
+- Department
+- EducationField
+- Gender
+- JobRole
+- MaritalStatus
+- Over18
+
+---
+
+## Análisis de Variables Categóricas
+
+A continuación, se presenta el análisis de las variables categóricas presentes en el dataset, así como la decisión sobre la técnica de codificación más adecuada para cada una.
+
+| Variable         | Tipo       | Técnica sugerida         | Justificación |
+|------------------|------------|---------------------------|---------------|
+| `Attrition`       | Binaria    | LabelEncoder              | Solo tiene 2 valores: `"Yes"` / `"No"`. Al ser binaria, puede codificarse como 0 y 1 sin pérdida de información. |
+| `BusinessTravel`  | Nominal    | OneHotEncoder             | Tiene múltiples categorías sin un orden lógico, por lo que es mejor representarlas como variables dummy. |
+| `Department`      | Nominal    | OneHotEncoder             | Las categorías como `"Sales"`, `"Research & Development"` no tienen jerarquía, por lo tanto OneHot es más apropiado. |
+| `EducationField`  | Nominal    | OneHotEncoder             | Al igual que `Department`, no hay un orden implícito entre las categorías. |
+| `Gender`          | Binaria    | LabelEncoder              | Tiene dos clases (`"Male"`, `"Female"`), por lo que puede codificarse fácilmente como 0 y 1. |
+| `JobRole`         | Nominal    | OneHotEncoder             | Contiene múltiples roles con significados distintos pero sin orden jerárquico, ideal para codificación one-hot. |
+| `MaritalStatus`   | Nominal    | OneHotEncoder             | Las categorías como `"Single"`, `"Married"` y `"Divorced"` no representan una escala ordenada. |
+| `Over18`          | Binaria    | LabelEncoder               | Contiene 2 valores. |
+
+---
+
+## Implementación
+
+Se implementaron dos funciones de codificación en el archivo `src/preprocessing/encoding.py`:
+
+### 1. `apply_label_encoding(df, columns)`
+
+Aplica codificación binaria a columnas con dos valores únicos.
+
+```python
+from sklearn.preprocessing import LabelEncoder
+
+def apply_label_encoding(df, columns):
+    df_encoded = df.copy()
+    encoders = {}
+    for col in columns:
+        le = LabelEncoder()
+        df_encoded[col] = le.fit_transform(df_encoded[col])
+        encoders[col] = le
+    return df_encoded, encoders
+```
+
+### 2. `apply_one_hot_encoding(df, columns)`
+
+Aplica codificación one-hot a columnas nominales con múltiples categorías.
+
+```python
+def apply_one_hot_encoding(df, columns):
+    df_encoded = pd.get_dummies(df, columns=columns, drop_first=False)
+    return df_encoded
+```
+
+---
+
+### Script final
+
+Se implementó una función que contiene toda la codificación de variables en el archivo `src/features/encoding.py`:
+
+#### 1. `encoding_variables()`
+
+```python
+  def encoding_variables():
+
+    df_feedback_jefes = procesar_feedback_jefes()
+
+    binary_cols = ['Attrition', 'Gender', 'Over18']
+    df_encoded, label_encoders = apply_label_encoding(df_feedback_jefes, binary_cols)
+
+    one_hot_cols = ['BusinessTravel', 'Department', 'EducationField', 'JobRole', 'MaritalStatus']
+    df_encoded = apply_one_hot_encoding(df_encoded, one_hot_cols)
+
+    df_encoded.to_csv(RUTA_ENCODED_DATA, index=False)
+```
+
+## Pruebas Unitarias
+
+Se desarrollaron pruebas para validar el comportamiento de las funciones en el archivo `tests/preprocessing/test_encoding.py` usando `pytest`.
+
+### Ejemplo de prueba para `apply_label_encoding`:
+
+```python
+def test_apply_label_encoding():
+    df = pd.DataFrame({
+        'Attrition': ['Yes', 'No'],
+        'Gender': ['Male', 'Female']
+    })
+    df_encoded, _ = apply_label_encoding(df, ['Attrition', 'Gender'])
+    assert set(df_encoded['Attrition']) <= {0, 1}
+    assert set(df_encoded['Gender']) <= {0, 1}
+```
+
+### Ejemplo de prueba para `apply_label_encoding`:
+
+```python
+def test_apply_one_hot_encoding():
+    df = pd.DataFrame({
+        'Department': ['Sales', 'HR'],
+        'MaritalStatus': ['Single', 'Married']
+    })
+    df_encoded = apply_one_hot_encoding(df, ['Department', 'MaritalStatus'])
+    assert 'Department_Sales' in df_encoded.columns
+    assert 'MaritalStatus_Single' in df_encoded.columns
+```
+
+## Resultado
+
+- El dataset final codificado se guardó en: data/clean/hr_data_encoded.csv
+- Todas las variables categóricas fueron transformadas con éxito
+- Las pruebas pasaron correctamente

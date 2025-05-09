@@ -11,6 +11,7 @@ from pathlib import Path
 # Usado como base para construir rutas a los datos crudos.
 ROOT_DIR = Path(__file__).parent.parent.parent
 DATA_DIR = ROOT_DIR / "data" / "raw"
+CLEAN_DATA_DIR = ROOT_DIR / "data" / "clean"
 
 # Rutas absolutas para los archivos de datos.
 # RUTA_EMPLOYEE_SURVEY_PATH: Ruta al archivo de la encuesta a empleados.
@@ -29,6 +30,7 @@ if not RUTA_GENERAL_PATH.exists():
 # Convertir rutas a string para uso posterior (por ejemplo, en pandas).
 RUTA_EMPLOYEE_SURVEY = str(RUTA_EMPLOYEE_SURVEY_PATH)
 RUTA_GENERAL = str(RUTA_GENERAL_PATH)
+RUTA_ENCODED_DATA = str(CLEAN_DATA_DIR / "encoded_data.csv")
 
 # Columna clave para la unión de datasets.
 # EMPLOYEE_COLUMN_JOIN: Usada como clave primaria para unir los archivos de datos.
